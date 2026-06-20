@@ -367,7 +367,7 @@ namespace ExpenseTracker
             if (e.RowIndex >= 0 && e.ColumnIndex == 2 && sqlDb != null && sqlDb.State == ConnectionState.Open)
             {
                 DataGridViewRow row = dgvAccount.Rows[e.RowIndex];
-                if (row.Cells["Id"].Value != null && row.Cells["分類"].Value != null)
+                if (row.Cells["Id"].Value != null && row.Cells["分類"].Value != null) 
                 {
                     string recordId = row.Cells["Id"].Value.ToString();
                     string newCategory = row.Cells["分類"].Value.ToString();
