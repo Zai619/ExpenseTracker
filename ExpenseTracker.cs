@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Data.SqlClient;
+using System.Windows.Forms.DataVisualization.Charting; 
 
 namespace ExpenseTracker
 {
@@ -105,7 +106,6 @@ namespace ExpenseTracker
             dgvAccount.Columns.Add("Id", "序號");
             dgvAccount.Columns.Add("日期", "日期");
 
-            // 表格內的下拉選單：直接讀取剛才 SyncCategories 同步好的項目
             DataGridViewComboBoxColumn cmbCol = new DataGridViewComboBoxColumn();
             cmbCol.Name = "分類";
             cmbCol.HeaderText = "分類";
@@ -121,7 +121,12 @@ namespace ExpenseTracker
             dgvAccount.Columns["Id"].Width = 60;
             dgvAccount.Columns["金額"].Width = 80;
 
-            int totalAmount = 0; // 用來計算總金額
+            int totalAmount = 0;
+            int totalIncome = 0;
+            int totalExpense = 0;
+
+            // ✨ 準備一個字典 (Dictionary) 來統計各分類的「支出」總和，準備畫圖用
+            Dictionary<string, int> expenseByCategory = new Dictionary<string, int>();
 
             try
             {
@@ -147,25 +152,76 @@ namespace ExpenseTracker
                 while (sqlDr.Read() != false)
                 {
                     int amt = Convert.ToInt32(sqlDr["金額"]);
-                    totalAmount += amt; // 累加總金額
+                    string catName = sqlDr["分類"].ToString().Trim();
+
+                    totalAmount += amt;
+                    if (amt > 0)
+                    {
+                        totalIncome += amt;
+                    }
+                    else
+                    {
+                        int absAmt = Math.Abs(amt);
+                        totalExpense += absAmt;
+
+                        // ✨ 將支出金額依分類進行累加
+                        if (expenseByCategory.ContainsKey(catName))
+                            expenseByCategory[catName] += absAmt;
+                        else
+                            expenseByCategory.Add(catName, absAmt);
+                    }
 
                     dgvAccount.Rows.Add(
                         sqlDr["Id"].ToString(),
                         Convert.ToDateTime(sqlDr["日期"]).ToShortDateString(),
-                        sqlDr["分類"].ToString().Trim(),
+                        catName,
                         amt.ToString(),
                         sqlDr["備註"].ToString()
                     );
                 }
                 sqlDr.Close();
 
-                // ✨ 更新總計標籤
-                lblTotal.Text = $"總計金額：{totalAmount} 元";
-                lblTotal.ForeColor = totalAmount < 0 ? Color.Red : Color.Green; // 負數顯示紅色，正數顯示綠色
+                lblTotal.Text = $"總收入：{totalIncome} 元   |   總支出：{totalExpense} 元   |   總餘額：{totalAmount} 元";
+                lblTotal.ForeColor = totalAmount < 0 ? Color.Red : Color.Green;
+
+                // ----------------------------------------------------
+                // ✨ 繪製圓餅圖的核心邏輯
+                // ----------------------------------------------------
+                chartExpense.Series.Clear(); // 清空舊圖表
+                chartExpense.Titles.Clear(); // 清空舊標題
+
+                // 設定圖表標題
+                chartExpense.Titles.Add("各類別支出比例");
+                chartExpense.Titles[0].Font = new Font("微軟正黑體", 12, FontStyle.Bold);
+
+                // 如果有支出資料才畫圖
+                if (expenseByCategory.Count > 0)
+                {
+                    Series series = new Series("支出");
+                    series.ChartType = SeriesChartType.Pie; // 設定為圓餅圖
+                    series.IsValueShownAsLabel = true; // 在圖上顯示數字
+                    series.Font = new Font("微軟正黑體", 10);
+
+                    // 將字典中的分類與金額加入圓餅圖
+                    foreach (var kvp in expenseByCategory)
+                    {
+                        // 參數：X軸為分類名稱，Y軸為該分類的總支出金額
+                        int pointIndex = series.Points.AddXY(kvp.Key, kvp.Value);
+                        // 讓圖表標籤同時顯示「分類 + 金額」
+                        series.Points[pointIndex].Label = $"{kvp.Key}\n{kvp.Value}元";
+                    }
+
+                    chartExpense.Series.Add(series);
+                }
+                else
+                {
+                    // 如果這段時間沒有支出，可以給個友善提示
+                    chartExpense.Titles.Add("(無支出資料)");
+                }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("篩選失敗：" + ex.Message);
+                MessageBox.Show("篩選或繪圖失敗：" + ex.Message);
             }
         }
 
@@ -203,22 +259,23 @@ namespace ExpenseTracker
 
         private void btnRun_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(cmbCategory.Text))
-            {
-                MessageBox.Show("請選擇類別！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return; // 中斷函式，不執行後續的 SQL
-            }
-
-            if (string.IsNullOrWhiteSpace(txtAmount.Text))
-            {
-                MessageBox.Show("請輸入金額！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return; // 中斷函式
-            }
+      
 
             int inputAmount = 0;
 
             if ((func == 1 || func == 2))
             {
+                if (string.IsNullOrWhiteSpace(cmbCategory.Text))
+                {
+                    MessageBox.Show("請選擇類別！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return; // 中斷函式，不執行後續的 SQL
+                }
+
+                if (string.IsNullOrWhiteSpace(txtAmount.Text))
+                {
+                    MessageBox.Show("請輸入金額！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return; // 中斷函式
+                }
                 if (!int.TryParse(txtAmount.Text, out inputAmount))
                 {
                     MessageBox.Show("請輸入正確的數字金額！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -335,5 +392,10 @@ namespace ExpenseTracker
         private void dtpStart_ValueChanged(object sender, EventArgs e) { AutoFilter(); }
         private void dtpEnd_ValueChanged(object sender, EventArgs e) { AutoFilter(); }
         private void cmbFilterCategory_SelectedIndexChanged(object sender, EventArgs e) { AutoFilter(); }
+
+        private void chart1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }

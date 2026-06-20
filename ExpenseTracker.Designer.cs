@@ -28,6 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.dgvAccount = new System.Windows.Forms.DataGridView();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.label3 = new System.Windows.Forms.Label();
@@ -49,9 +52,11 @@
             this.rdoExpense = new System.Windows.Forms.RadioButton();
             this.rdoIncome = new System.Windows.Forms.RadioButton();
             this.lblTotal = new System.Windows.Forms.Label();
+            this.chartExpense = new System.Windows.Forms.DataVisualization.Charting.Chart();
             ((System.ComponentModel.ISupportInitialize)(this.dgvAccount)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chartExpense)).BeginInit();
             this.SuspendLayout();
             // 
             // dgvAccount
@@ -277,17 +282,35 @@
             // 
             this.lblTotal.AutoSize = true;
             this.lblTotal.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.lblTotal.Location = new System.Drawing.Point(52, 277);
+            this.lblTotal.Location = new System.Drawing.Point(28, 277);
             this.lblTotal.Name = "lblTotal";
             this.lblTotal.Size = new System.Drawing.Size(72, 25);
             this.lblTotal.TabIndex = 8;
             this.lblTotal.Text = "總餘額";
             // 
+            // chartExpense
+            // 
+            chartArea1.Name = "ChartArea1";
+            this.chartExpense.ChartAreas.Add(chartArea1);
+            legend1.Name = "Legend1";
+            this.chartExpense.Legends.Add(legend1);
+            this.chartExpense.Location = new System.Drawing.Point(303, 431);
+            this.chartExpense.Name = "chartExpense";
+            series1.ChartArea = "ChartArea1";
+            series1.Legend = "Legend1";
+            series1.Name = "Series1";
+            this.chartExpense.Series.Add(series1);
+            this.chartExpense.Size = new System.Drawing.Size(300, 300);
+            this.chartExpense.TabIndex = 9;
+            this.chartExpense.Text = "chart1";
+            this.chartExpense.Click += new System.EventHandler(this.chart1_Click);
+            // 
             // ExpenseTracker
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(904, 450);
+            this.ClientSize = new System.Drawing.Size(904, 738);
+            this.Controls.Add(this.chartExpense);
             this.Controls.Add(this.lblTotal);
             this.Controls.Add(this.cmbFilterCategory);
             this.Controls.Add(this.dtpEnd);
@@ -306,6 +329,7 @@
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.chartExpense)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -334,6 +358,7 @@
         private System.Windows.Forms.RadioButton rdoIncome;
         private System.Windows.Forms.RadioButton rdoExpense;
         private System.Windows.Forms.Label lblTotal;
+        private System.Windows.Forms.DataVisualization.Charting.Chart chartExpense;
     }
 }
 
