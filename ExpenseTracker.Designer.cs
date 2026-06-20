@@ -46,6 +46,9 @@
             this.dtpStart = new System.Windows.Forms.DateTimePicker();
             this.dtpEnd = new System.Windows.Forms.DateTimePicker();
             this.cmbFilterCategory = new System.Windows.Forms.ComboBox();
+            this.rdoExpense = new System.Windows.Forms.RadioButton();
+            this.rdoIncome = new System.Windows.Forms.RadioButton();
+            this.lblTotal = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dgvAccount)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -64,6 +67,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.rdoIncome);
+            this.groupBox1.Controls.Add(this.rdoExpense);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.label1);
@@ -122,6 +127,7 @@
             // 
             // cmbCategory
             // 
+            this.cmbCategory.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbCategory.FormattingEnabled = true;
             this.cmbCategory.Items.AddRange(new object[] {
             "食",
@@ -228,6 +234,7 @@
             // 
             // cmbFilterCategory
             // 
+            this.cmbFilterCategory.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbFilterCategory.FormattingEnabled = true;
             this.cmbFilterCategory.Items.AddRange(new object[] {
             "全部",
@@ -244,11 +251,44 @@
             this.cmbFilterCategory.TabIndex = 7;
             this.cmbFilterCategory.SelectedIndexChanged += new System.EventHandler(this.cmbFilterCategory_SelectedIndexChanged);
             // 
+            // rdoExpense
+            // 
+            this.rdoExpense.AutoSize = true;
+            this.rdoExpense.Checked = true;
+            this.rdoExpense.Location = new System.Drawing.Point(74, 285);
+            this.rdoExpense.Name = "rdoExpense";
+            this.rdoExpense.Size = new System.Drawing.Size(73, 29);
+            this.rdoExpense.TabIndex = 7;
+            this.rdoExpense.TabStop = true;
+            this.rdoExpense.Text = "支出";
+            this.rdoExpense.UseVisualStyleBackColor = true;
+            // 
+            // rdoIncome
+            // 
+            this.rdoIncome.AutoSize = true;
+            this.rdoIncome.Location = new System.Drawing.Point(89, 320);
+            this.rdoIncome.Name = "rdoIncome";
+            this.rdoIncome.Size = new System.Drawing.Size(73, 29);
+            this.rdoIncome.TabIndex = 8;
+            this.rdoIncome.Text = "收入";
+            this.rdoIncome.UseVisualStyleBackColor = true;
+            // 
+            // lblTotal
+            // 
+            this.lblTotal.AutoSize = true;
+            this.lblTotal.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
+            this.lblTotal.Location = new System.Drawing.Point(52, 277);
+            this.lblTotal.Name = "lblTotal";
+            this.lblTotal.Size = new System.Drawing.Size(72, 25);
+            this.lblTotal.TabIndex = 8;
+            this.lblTotal.Text = "總餘額";
+            // 
             // ExpenseTracker
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(904, 450);
+            this.Controls.Add(this.lblTotal);
             this.Controls.Add(this.cmbFilterCategory);
             this.Controls.Add(this.dtpEnd);
             this.Controls.Add(this.dtpStart);
@@ -267,6 +307,7 @@
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -290,6 +331,9 @@
         private System.Windows.Forms.DateTimePicker dtpStart;
         private System.Windows.Forms.DateTimePicker dtpEnd;
         private System.Windows.Forms.ComboBox cmbFilterCategory;
+        private System.Windows.Forms.RadioButton rdoIncome;
+        private System.Windows.Forms.RadioButton rdoExpense;
+        private System.Windows.Forms.Label lblTotal;
     }
 }
 

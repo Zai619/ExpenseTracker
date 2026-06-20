@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
@@ -26,32 +27,77 @@ namespace ExpenseTracker
                 sqlDb.Open();
                 dgvAccount.RowHeadersVisible = false;
                 dgvAccount.AllowUserToAddRows = false;
-
-                // 核心防呆：當資料庫撈出的分類不在選單清單中時，默默吸收錯誤不閃退
                 dgvAccount.DataError += (s, ev) => { ev.ThrowException = false; };
 
+                // 預設日期區間：這個月 1 號 ~ 今天
                 dtpStart.Value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
                 dtpEnd.Value = DateTime.Now;
-                // 連線成功，預先載入一次資料
-                if (cmbFilterCategory.Items.Count > 0)
-                {
-                    cmbFilterCategory.SelectedIndex = 0;
-                }
 
-                // 3. 程式啟動時，直接執行連動篩選！
+                // 程式啟動時，先同步一次資料庫裡所有的類別
+                SyncCategories();
+
+                // 執行首次連動篩選
                 AutoFilter();
-                ShowData();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("提醒：本專案使用 LocalDB 服務，若未安裝可能無法正常讀寫資料庫。\n錯誤訊息：" + ex.Message,
+                MessageBox.Show("提醒：本專案使用 LocalDB 服務...\n錯誤訊息：" + ex.Message,
                                 "系統連線提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 btnRun.Enabled = false;
                 btnShow.Enabled = false;
             }
         }
 
-        private void ShowData()
+        // ✨ 新增核心功能：從資料庫撈取所有歷史分類，動態更新所有的下拉選單
+        private void SyncCategories()
+        {
+            List<string> cats = new List<string> { "食", "衣", "住", "行", "育", "樂", "其他" }; // 預設底線類別
+            try
+            {
+                // 從資料庫撈出所有不重複的分類
+                SqlCommand cmd = new SqlCommand("SELECT DISTINCT 分類 FROM accountBook", sqlDb);
+                SqlDataReader dr = cmd.ExecuteReader();
+                while (dr.Read())
+                {
+                    string c = dr[0].ToString().Trim();
+                    if (!cats.Contains(c) && !string.IsNullOrEmpty(c)) cats.Add(c);
+                }
+                dr.Close();
+
+                // 備份使用者目前選取的文字 (避免更新選單時畫面被洗掉)
+                string currentCat = cmbCategory.Text;
+                string currentFilter = cmbFilterCategory.Text;
+
+                cmbCategory.Items.Clear();
+                cmbFilterCategory.Items.Clear();
+
+                cmbFilterCategory.Items.Add("全部"); // 篩選專用
+
+                foreach (string c in cats)
+                {
+                    cmbCategory.Items.Add(c);
+                    cmbFilterCategory.Items.Add(c);
+                }
+
+                // 恢復選取狀態
+                cmbCategory.Text = currentCat;
+                if (cmbFilterCategory.Items.Contains(currentFilter)) cmbFilterCategory.Text = currentFilter;
+                else cmbFilterCategory.SelectedIndex = 0;
+            }
+            catch { }
+        }
+
+        private void AutoFilter()
+        {
+            DateTime start = dtpStart.Value;
+            DateTime end = dtpEnd.Value;
+            string cat = cmbFilterCategory.Text;
+
+            if (start > end) return;
+            ShowData(start, end, cat);
+        }
+
+        private void ShowData(DateTime startDate, DateTime endDate, string category)
         {
             dgvAccount.Rows.Clear();
             dgvAccount.Columns.Clear();
@@ -59,18 +105,14 @@ namespace ExpenseTracker
             dgvAccount.Columns.Add("Id", "序號");
             dgvAccount.Columns.Add("日期", "日期");
 
-            // 建立下拉選單欄位
+            // 表格內的下拉選單：直接讀取剛才 SyncCategories 同步好的項目
             DataGridViewComboBoxColumn cmbCol = new DataGridViewComboBoxColumn();
             cmbCol.Name = "分類";
             cmbCol.HeaderText = "分類";
-            cmbCol.Items.Add("食");
-            cmbCol.Items.Add("衣");
-            cmbCol.Items.Add("住");
-            cmbCol.Items.Add("行");
-            cmbCol.Items.Add("育");
-            cmbCol.Items.Add("樂");
-            cmbCol.Items.Add("其他");
-            cmbCol.Items.Add("午餐"); // 補上測試資料的分類，避免顯示空白
+            foreach (var item in cmbCategory.Items)
+            {
+                cmbCol.Items.Add(item);
+            }
             dgvAccount.Columns.Add(cmbCol);
 
             dgvAccount.Columns.Add("金額", "金額");
@@ -79,60 +121,19 @@ namespace ExpenseTracker
             dgvAccount.Columns["Id"].Width = 60;
             dgvAccount.Columns["金額"].Width = 80;
 
-            try
-            {
-                string sqlStr = "SELECT * FROM accountBook ORDER BY 日期 DESC";
-                SqlCommand sqlCmd = new SqlCommand(sqlStr, sqlDb);
-                SqlDataReader sqlDr = sqlCmd.ExecuteReader();
-
-                while (sqlDr.Read())
-                {
-                    dgvAccount.Rows.Add(
-                        sqlDr["Id"].ToString(),
-                        Convert.ToDateTime(sqlDr["日期"]).ToShortDateString(),
-                        sqlDr["分類"].ToString().Trim(),
-                        sqlDr["金額"].ToString(),
-                        sqlDr["備註"].ToString()
-                    );
-                }
-                sqlDr.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("讀取資料庫失敗：" + ex.Message);
-            }
-        }
-        private void ShowData(DateTime startDate, DateTime endDate, string category)
-        {
-            // 1. 清空表格
-            dgvAccount.Rows.Clear();
-            dgvAccount.Columns.Clear();
-
-            // 2. 建立標題欄位
-            dgvAccount.Columns.Add("Id", "序號");
-            dgvAccount.Columns.Add("日期", "日期");
-            dgvAccount.Columns.Add("分類", "分類");
-            dgvAccount.Columns.Add("金額", "金額");
-            dgvAccount.Columns.Add("備註", "備註");
-            dgvAccount.Columns["Id"].Width = 60;
-            dgvAccount.Columns["金額"].Width = 80;
+            int totalAmount = 0; // 用來計算總金額
 
             try
             {
-                // 3. 利用 WHERE 組合多條件篩選 SQL 指令 (對應投影片 WHERE 查詢條件概念)
-                // 基本條件：篩選在 startDate 與 endDate 之間的日期
                 string sqlStr = "SELECT * FROM accountBook WHERE 日期 BETWEEN @start AND @end";
 
-                // 如果類別不是選擇「全部」，就再用 AND 串接類別條件
                 if (category != "全部" && !string.IsNullOrEmpty(category))
                 {
                     sqlStr += " AND 分類 = @category";
                 }
 
-                // 最後加上最新日期排序
                 sqlStr += " ORDER BY 日期 DESC";
 
-                // 4. 使用參數化查詢（防範 SQL 注入，也避免日期字串格式出錯）
                 SqlCommand sqlCmd = new SqlCommand(sqlStr, sqlDb);
                 sqlCmd.Parameters.AddWithValue("@start", startDate.ToString("yyyy-MM-dd"));
                 sqlCmd.Parameters.AddWithValue("@end", endDate.ToString("yyyy-MM-dd"));
@@ -142,40 +143,35 @@ namespace ExpenseTracker
                     sqlCmd.Parameters.AddWithValue("@category", category);
                 }
 
-                // 5. 執行並透過 Reader 讀取資料填入表格 (對應投影片 Reader 邏輯)
                 SqlDataReader sqlDr = sqlCmd.ExecuteReader();
                 while (sqlDr.Read() != false)
                 {
+                    int amt = Convert.ToInt32(sqlDr["金額"]);
+                    totalAmount += amt; // 累加總金額
+
                     dgvAccount.Rows.Add(
                         sqlDr["Id"].ToString(),
                         Convert.ToDateTime(sqlDr["日期"]).ToShortDateString(),
                         sqlDr["分類"].ToString().Trim(),
-                        sqlDr["金額"].ToString(),
+                        amt.ToString(),
                         sqlDr["備註"].ToString()
                     );
                 }
-                sqlDr.Close(); // 務必關閉 Reader
+                sqlDr.Close();
+
+                // ✨ 更新總計標籤
+                lblTotal.Text = $"總計金額：{totalAmount} 元";
+                lblTotal.ForeColor = totalAmount < 0 ? Color.Red : Color.Green; // 負數顯示紅色，正數顯示綠色
             }
             catch (Exception ex)
             {
                 MessageBox.Show("篩選失敗：" + ex.Message);
             }
         }
-        private void AutoFilter()
-        {
-            DateTime start = dtpStart.Value;
-            DateTime end = dtpEnd.Value;
-            string cat = cmbFilterCategory.Text;
 
-            // 如果開始日期大於結束日期，就不動作（防呆）
-            if (start > end) return;
-
-            // 自動執行我們在上一步寫好的篩選 ShowData
-            ShowData(start, end, cat);
-        }
         private void btnShow_Click(object sender, EventArgs e)
         {
-            ShowData();
+            AutoFilter();
         }
 
         private void rdoAdd_Click(object sender, EventArgs e)
@@ -195,6 +191,7 @@ namespace ExpenseTracker
             txtAmount.Enabled = true;
             txtMemo.Enabled = true;
         }
+
         private void rdoDelete_Click(object sender, EventArgs e)
         {
             func = 3;
@@ -206,10 +203,33 @@ namespace ExpenseTracker
 
         private void btnRun_Click(object sender, EventArgs e)
         {
-            if ((func == 1 || func == 2) && string.IsNullOrEmpty(txtAmount.Text))
+            if (string.IsNullOrWhiteSpace(cmbCategory.Text))
+            {
+                MessageBox.Show("請選擇類別！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return; // 中斷函式，不執行後續的 SQL
+            }
+
+            if (string.IsNullOrWhiteSpace(txtAmount.Text))
             {
                 MessageBox.Show("請輸入金額！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                return; // 中斷函式
+            }
+
+            int inputAmount = 0;
+
+            if ((func == 1 || func == 2))
+            {
+                if (!int.TryParse(txtAmount.Text, out inputAmount))
+                {
+                    MessageBox.Show("請輸入正確的數字金額！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // ✨ 判斷收支：如果選「支出」，將金額轉為負數；如果選「收入」，轉為正數
+                if (rdoExpense.Checked)
+                    inputAmount = -Math.Abs(inputAmount);
+                else
+                    inputAmount = Math.Abs(inputAmount);
             }
 
             string sqlStr = "";
@@ -217,13 +237,13 @@ namespace ExpenseTracker
             switch (func)
             {
                 case 1:
-                    sqlStr = $"INSERT INTO accountBook (日期, 分類, 金額, 備註) VALUES ('{dtpDate.Value:yyyy-MM-dd}', N'{cmbCategory.Text}', {txtAmount.Text}, N'{txtMemo.Text}')";
+                    sqlStr = $"INSERT INTO accountBook (日期, 分類, 金額, 備註) VALUES ('{dtpDate.Value:yyyy-MM-dd}', N'{cmbCategory.Text}', {inputAmount}, N'{txtMemo.Text}')";
                     break;
 
                 case 2:
                     if (dgvAccount.CurrentRow == null || dgvAccount.CurrentRow.IsNewRow || dgvAccount.CurrentRow.Cells["Id"].Value == null) return;
                     string updateId = dgvAccount.CurrentRow.Cells["Id"].Value.ToString();
-                    sqlStr = $"UPDATE accountBook SET 日期='{dtpDate.Value:yyyy-MM-dd}', 分類=N'{cmbCategory.Text}', 金額={txtAmount.Text}, 備註=N'{txtMemo.Text}' WHERE Id = {updateId}";
+                    sqlStr = $"UPDATE accountBook SET 日期='{dtpDate.Value:yyyy-MM-dd}', 分類=N'{cmbCategory.Text}', 金額={inputAmount}, 備註=N'{txtMemo.Text}' WHERE Id = {updateId}";
                     break;
 
                 case 3:
@@ -243,7 +263,10 @@ namespace ExpenseTracker
 
                 txtAmount.Clear();
                 txtMemo.Clear();
-                ShowData();
+
+                // ✨ 每次資料庫有變動後，重新同步所有類別，並刷新畫面！
+                SyncCategories();
+                AutoFilter();
             }
             catch (Exception ex)
             {
@@ -261,15 +284,29 @@ namespace ExpenseTracker
                     dtpDate.Value = Convert.ToDateTime(row.Cells["日期"].Value);
 
                 cmbCategory.Text = row.Cells["分類"].Value?.ToString().Trim() ?? "";
-                txtAmount.Text = row.Cells["金額"].Value?.ToString() ?? "";
+
+                // 讀取金額時轉回正數顯示在輸入框，並自動切換收入/支出 RadioButton
+                if (row.Cells["金額"].Value != null)
+                {
+                    int amt = Convert.ToInt32(row.Cells["金額"].Value);
+                    if (amt < 0)
+                    {
+                        rdoExpense.Checked = true;
+                        txtAmount.Text = Math.Abs(amt).ToString(); // 介面輸入框保持正數
+                    }
+                    else
+                    {
+                        rdoIncome.Checked = true;
+                        txtAmount.Text = amt.ToString();
+                    }
+                }
+
                 txtMemo.Text = row.Cells["備註"].Value?.ToString() ?? "";
             }
         }
 
-        // 表格內選單變更時自動同步寫入資料庫
         private void dgvAccount_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            // 確保改到的是「分類」欄位 (index = 2) 且連線存在
             if (e.RowIndex >= 0 && e.ColumnIndex == 2 && sqlDb != null && sqlDb.State == ConnectionState.Open)
             {
                 DataGridViewRow row = dgvAccount.Rows[e.RowIndex];
@@ -283,6 +320,9 @@ namespace ExpenseTracker
                         string updateSql = $"UPDATE accountBook SET 分類 = N'{newCategory}' WHERE Id = {recordId}";
                         SqlCommand cmd = new SqlCommand(updateSql, sqlDb);
                         cmd.ExecuteNonQuery();
+
+                        // 表格內改完類別，也順便重新同步一次
+                        SyncCategories();
                     }
                     catch (Exception ex)
                     {
@@ -292,20 +332,8 @@ namespace ExpenseTracker
             }
         }
 
-        private void dtpStart_ValueChanged(object sender, EventArgs e)
-        {
-            AutoFilter();
-        }
-
-        private void dtpEnd_ValueChanged(object sender, EventArgs e)
-        {
-            AutoFilter();
-        }
-
-        private void cmbFilterCategory_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            AutoFilter();
-
-        }
+        private void dtpStart_ValueChanged(object sender, EventArgs e) { AutoFilter(); }
+        private void dtpEnd_ValueChanged(object sender, EventArgs e) { AutoFilter(); }
+        private void cmbFilterCategory_SelectedIndexChanged(object sender, EventArgs e) { AutoFilter(); }
     }
 }
