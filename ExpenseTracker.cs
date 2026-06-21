@@ -47,7 +47,7 @@ namespace ExpenseTracker
                 MessageBox.Show("提醒：本專案使用 LocalDB 服務...\n錯誤訊息：" + ex.Message,
                                 "系統連線提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 btnRun.Enabled = false;
-                btnShow.Enabled = false;
+                //btnShow.Enabled = false;
             }
         }
 
@@ -83,11 +83,11 @@ namespace ExpenseTracker
             btnRun.Font = new Font("微軟正黑體", 11F, FontStyle.Bold);
             btnRun.Cursor = Cursors.Hand;
 
-            btnShow.FlatStyle = FlatStyle.Flat;
+            /*btnShow.FlatStyle = FlatStyle.Flat;
             btnShow.BackColor = Color.FromArgb(52, 73, 94);
             btnShow.ForeColor = Color.White;
             btnShow.FlatAppearance.BorderSize = 0;
-            btnShow.Cursor = Cursors.Hand;
+            btnShow.Cursor = Cursors.Hand;*/
         }
 
         private void SyncDropdowns()
@@ -296,7 +296,7 @@ namespace ExpenseTracker
             }
         }
 
-        private void btnShow_Click(object sender, EventArgs e) { AutoFilter(); }
+        //private void btnShow_Click(object sender, EventArgs e) { AutoFilter(); }
 
         private void rdoAdd_Click(object sender, EventArgs e)
         {

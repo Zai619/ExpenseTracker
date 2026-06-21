@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea20 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend20 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series20 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea22 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend22 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series22 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.dgvAccount = new System.Windows.Forms.DataGridView();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.label4 = new System.Windows.Forms.Label();
@@ -48,7 +48,6 @@
             this.rdoDelete = new System.Windows.Forms.RadioButton();
             this.rdoUpdate = new System.Windows.Forms.RadioButton();
             this.rdoAdd = new System.Windows.Forms.RadioButton();
-            this.btnShow = new System.Windows.Forms.Button();
             this.btnRun = new System.Windows.Forms.Button();
             this.dtpStart = new System.Windows.Forms.DateTimePicker();
             this.dtpEnd = new System.Windows.Forms.DateTimePicker();
@@ -209,7 +208,6 @@
             this.groupBox2.Controls.Add(this.rdoDelete);
             this.groupBox2.Controls.Add(this.rdoUpdate);
             this.groupBox2.Controls.Add(this.rdoAdd);
-            this.groupBox2.Controls.Add(this.btnShow);
             this.groupBox2.Controls.Add(this.btnRun);
             this.groupBox2.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
             this.groupBox2.Location = new System.Drawing.Point(455, 307);
@@ -254,22 +252,10 @@
             this.rdoAdd.UseVisualStyleBackColor = true;
             this.rdoAdd.Click += new System.EventHandler(this.rdoAdd_Click);
             // 
-            // btnShow
-            // 
-            this.btnShow.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.btnShow.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btnShow.Location = new System.Drawing.Point(532, 68);
-            this.btnShow.Name = "btnShow";
-            this.btnShow.Size = new System.Drawing.Size(142, 40);
-            this.btnShow.TabIndex = 3;
-            this.btnShow.Text = "顯示帳目";
-            this.btnShow.UseVisualStyleBackColor = true;
-            this.btnShow.Click += new System.EventHandler(this.btnShow_Click);
-            // 
             // btnRun
             // 
             this.btnRun.Font = new System.Drawing.Font("微軟正黑體", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(136)));
-            this.btnRun.Location = new System.Drawing.Point(397, 68);
+            this.btnRun.Location = new System.Drawing.Point(600, 68);
             this.btnRun.Name = "btnRun";
             this.btnRun.Size = new System.Drawing.Size(99, 40);
             this.btnRun.TabIndex = 4;
@@ -324,16 +310,16 @@
             // 
             // chartExpense
             // 
-            chartArea20.Name = "ChartArea1";
-            this.chartExpense.ChartAreas.Add(chartArea20);
-            legend20.Name = "Legend1";
-            this.chartExpense.Legends.Add(legend20);
+            chartArea22.Name = "ChartArea1";
+            this.chartExpense.ChartAreas.Add(chartArea22);
+            legend22.Name = "Legend1";
+            this.chartExpense.Legends.Add(legend22);
             this.chartExpense.Location = new System.Drawing.Point(24, 36);
             this.chartExpense.Name = "chartExpense";
-            series20.ChartArea = "ChartArea1";
-            series20.Legend = "Legend1";
-            series20.Name = "Series1";
-            this.chartExpense.Series.Add(series20);
+            series22.ChartArea = "ChartArea1";
+            series22.Legend = "Legend1";
+            series22.Name = "Series1";
+            this.chartExpense.Series.Add(series22);
             this.chartExpense.Size = new System.Drawing.Size(384, 385);
             this.chartExpense.TabIndex = 9;
             this.chartExpense.Text = "chart1";
@@ -402,6 +388,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
+            this.BackColor = System.Drawing.SystemColors.GradientInactiveCaption;
             this.ClientSize = new System.Drawing.Size(1682, 466);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.label7);
@@ -447,7 +434,6 @@
         private System.Windows.Forms.RadioButton rdoAdd;
         private System.Windows.Forms.RadioButton rdoDelete;
         private System.Windows.Forms.RadioButton rdoUpdate;
-        private System.Windows.Forms.Button btnShow;
         private System.Windows.Forms.Button btnRun;
         private System.Windows.Forms.DateTimePicker dtpStart;
         private System.Windows.Forms.DateTimePicker dtpEnd;
